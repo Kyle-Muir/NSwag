@@ -98,9 +98,13 @@ namespace NSwag.SwaggerGeneration.AspNetCore
                 var apiDescription = item.Item1;
                 var method = item.Item2;
 
+                var path = apiDescription.RelativePath;
+                if (!path.StartsWith("/"))
+                    path = "/" + path;
+
                 var operationDescription = new SwaggerOperationDescription
                 {
-                    Path = apiDescription.RelativePath,
+                    Path = path,
                     Method = GetSwaggerOperationMethod(apiDescription.HttpMethod),
                     Operation = new SwaggerOperation
                     {
