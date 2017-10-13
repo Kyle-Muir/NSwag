@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,10 @@ namespace NSwag.Sample.NetCoreAngular
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-            services.AddMvc().AddJsonOptions(o =>
+            services.AddMvc(options =>
+            {
+                options.Conventions.Add(new ApiExplorerConvention());
+            }).AddJsonOptions(o =>
             {
                 o.SerializerSettings.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
                 o.SerializerSettings.Converters = new List<JsonConverter> { new StringEnumConverter() };
@@ -54,10 +58,10 @@ namespace NSwag.Sample.NetCoreAngular
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
-                {
-                    HotModuleReplacement = true
-                });
+                //app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+                //{
+                //    HotModuleReplacement = true
+                //});
             }
             else
             {
@@ -76,6 +80,14 @@ namespace NSwag.Sample.NetCoreAngular
                     name: "spa-fallback",
                     defaults: new { controller = "Home", action = "Index" });
             });
+        }
+
+        private class ApiExplorerConvention : IApplicationModelConvention
+        {
+            public void Apply(ApplicationModel application)
+            {
+                application.ApiExplorer.IsVisible = true;
+            }
         }
     }
 }
