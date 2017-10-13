@@ -71,11 +71,13 @@ namespace NSwag.SwaggerGeneration.AspNetCore
                     var attributeType = attribute?.GetType();
                     dynamic responseTypeAttribute = attribute;
 
-                    var httpStatusCode = IsVoidResponse(returnType) ? GetVoidResponseStatusCode() : apiResponse.StatusCode.ToString(CultureInfo.InvariantCulture);
-                    if (apiResponse.TryGetPropertyValue<bool>("IsDefaultResponse"))
-                    {
+                    string httpStatusCode;
+                    if (apiResponse.StatusCode == 0 && IsVoidResponse(returnType))
+                        httpStatusCode = GetVoidResponseStatusCode();
+                    else if (apiResponse.TryGetPropertyValue<bool>("IsDefaultResponse"))
                         httpStatusCode = "default";
-                    }
+                    else
+                        httpStatusCode = apiResponse.StatusCode.ToString(CultureInfo.InvariantCulture);
 
                     if (attributeType?.GetRuntimeProperty("HttpStatusCode") != null && responseTypeAttribute.HttpStatusCode != null)
                         httpStatusCode = responseTypeAttribute.HttpStatusCode.ToString();

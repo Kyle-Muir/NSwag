@@ -80,12 +80,19 @@ namespace NSwag.SwaggerGeneration.AspNetCore
 
                             context.OperationDescription.Operation.Parameters.Add(operationParameter);
                         }
+                        else if (apiParameter.Source == BindingSource.Query)
+                        {
+                            var operationParameter = await context.SwaggerGenerator.CreatePrimitiveParameterAsync(parameterName, parameter).ConfigureAwait(false);
+                            operationParameter.Kind = SwaggerParameterKind.Query;
+
+                            context.OperationDescription.Operation.Parameters.Add(operationParameter);
+                        }
                         else
                         {
                             if (apiParameter.Source == BindingSource.Body)
                                 await AddBodyParameterAsync(context, parameterName, parameter).ConfigureAwait(false);
 
-                            else if (apiParameter.Source == BindingSource.Custom && parameterInfo.IsComplexType)
+                            else if (parameterInfo.IsComplexType)
                             {
                                 // Try to find a [WillReadBody] attribute on either the action parameter or the bindingAttribute's class
                                 var willReadBodyAttribute = attributes.TryGetIfAssignableTo("WillReadBodyAttribute", TypeNameStyle.Name);
@@ -105,13 +112,13 @@ namespace NSwag.SwaggerGeneration.AspNetCore
                                         // If we are not reading from the body, then treat this as a primitive.
                                         // This may seem odd, but it allows for primitive -> custom complex-type bindings which are very common
                                         // In this case, the API author should use a TypeMapper to define the parameter
-                                        await AddPrimitiveParameterAsync(parameterName, context.OperationDescription.Operation, parameter, context.SwaggerGenerator).ConfigureAwait(false);
+                                        await AddPrimitiveParametersFromUriAsync(
+                                            context, apiParameter, httpPath, parameterName, parameter, parameterInfo).ConfigureAwait(false);
                                     }
                                 }
                             }
                             else
-                                await AddPrimitiveParametersFromUriAsync(
-                                    context, apiParameter, httpPath, parameterName, parameter, parameterInfo).ConfigureAwait(false);
+                                await AddPrimitiveParameterAsync(parameterName, context.OperationDescription.Operation, parameter, context.SwaggerGenerator).ConfigureAwait(false);
                         }
                     }
                 }
